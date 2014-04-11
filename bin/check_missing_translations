@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'yaml'
+
+if File.exists?("config/missing_translations.yml")
+  missing_translations = YAML.load_file("config/missing_translations.yml")
+
+  if !missing_translations.kind_of?(Hash) or missing_translations.length == 0
+    exit 0
+  else
+    puts "ERROR: config/missing_translations.yml contains untranslated sentences, please merge them with nl.yml\n\n"
+
+    File.read("config/missing_translations.yml").each_line do |line|
+      puts "\t#{line}"
+    end
+
+    exit 1
+  end
+else
+  exit 0
+end

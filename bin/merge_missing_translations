@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'yaml'
+require 'i18n/core_ext/hash'
+require 'ya2yaml'
+
+if File.exists?("config/missing_translations.yml")
+  master_language = YAML.load_file("config/locales/nl.yml")
+  missing_translations = YAML.load_file("config/missing_translations.yml")
+
+  raise "Missing translations not YAML" unless missing_translations.kind_of?(Hash)
+
+  proc = Proc.new { |k, v| v.kind_of?(Hash) ? (v.delete_if(&proc); nil) : (v.nil? or v.empty?) }
+  missing_translations.delete_if(&proc)
+
+  missing_translations.deep_merge!(master_language)
+
+  result_string = ""
+  missing_translations.ya2yaml.each_line { |l| result_string += (l.rstrip + "\n") }
+
+  f = File.open("config/locales/nl.yml", "w")
+  f.write(result_string)
+  f.close
+
+  f = File.open("config/missing_translations.yml", "w")
+  f.close
+
+  puts "Merged missing_translations.yml into nl.yml"
+else
+  puts "No missing translations"
+end
