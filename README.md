@@ -66,7 +66,7 @@ I18n.exception_handler = I18n::Workflow::ExceptionHandler.new unless Rails.env.p
 
 Furthermore you should call `store_missing_translations` to write the missing translations to disk.
 
-```
+```ruby
 # After each request, write all missing translations to disk
 class ApplicationController < ActionController::Base
   after_filter do
