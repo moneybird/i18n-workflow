@@ -2,3 +2,8 @@
 en:
   documents: Documents
   documents.index.no_documents_found: "No documents found"
+  foobar: "Foobar"
+  no_foobar: "No rabfoo"
+  foo_scope:
+    bar_scope:
+      no_foobar: "No foobar"

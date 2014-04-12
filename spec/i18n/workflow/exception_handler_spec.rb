@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'i18n/workflow'
 
 describe I18n::Workflow::ExceptionHandler do
 
@@ -7,14 +6,7 @@ describe I18n::Workflow::ExceptionHandler do
   let(:file) { double(:file, close: true) }
 
   before do
-    I18n.backend.reload!
-    @old_load_path = I18n.load_path
-    I18n.load_path = Dir["spec/fixtures/locales/*.yml"]
-  end
-
-  after do
-    I18n.backend.reload!
-    I18n.load_path = @old_load_path
+    I18n.locale = :nl
   end
 
   it "returns a nicely formatted HTML span" do

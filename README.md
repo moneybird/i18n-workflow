@@ -130,6 +130,7 @@ call to `I18n.translate`. By including `I18n::Workflow::AlwaysCascade`, cascadin
 will be default for I18n.
 
 ```ruby
+I18n.backend.class.send(:include, I18n::Backend::Cascade)
 I18n.backend.class.send(:include, I18n::Workflow::AlwaysCascade)
 ```
 
