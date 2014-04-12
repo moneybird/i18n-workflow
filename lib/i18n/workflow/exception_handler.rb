@@ -1,4 +1,7 @@
 require 'ya2yaml'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/keys'
+require 'i18n'
 
 # This class handles exceptions for I18n. It has the following purpose:
 #
@@ -73,14 +76,16 @@ module I18n::Workflow
     # and contains translations, the new missing translations are merged.
     def store_missing_translations(locale=nil)
       if missing_translations?
+        missing_translations_path = "config/missing_translations.yml"
+
         locale ||= I18n.default_locale
 
-        if File.exists?(Rails.root.join("config", "missing_translations.yml"))
-          current_missing_translations = YAML.load_file(Rails.root.join("config", "missing_translations.yml"))
+        if File.exists?(missing_translations_path)
+          current_missing_translations = YAML.load_file(missing_translations_path)
         end
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
-        file = File.open(Rails.root.join("config", "missing_translations.yml"), "w+")
+        file = File.open(missing_translations_path, "w+")
         file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).ya2yaml)
         file.close
 

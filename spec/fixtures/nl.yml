@@ -1,0 +1,6 @@
+---
+nl:
+  documents: Documenten
+  documents_scope:
+    index_scope:
+      no_documents_found: "Geen documenten gevonden"

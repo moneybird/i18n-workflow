@@ -9,7 +9,7 @@ describe I18n::Workflow::ExceptionHandler do
   before do
     I18n.backend.reload!
     @old_load_path = I18n.load_path
-    I18n.load_path = Dir[Rails.root.join("spec", "fixtures", "locales", "*.yml")]
+    I18n.load_path = Dir["spec/fixtures/locales/*.yml"]
   end
 
   after do
@@ -32,8 +32,8 @@ describe I18n::Workflow::ExceptionHandler do
       { nl: { missing_scope: { key_scope: { new_translation: "" } } } }
     )
 
-    allow(File).to receive(:exists?).with(Rails.root.join("config", "missing_translations.yml")).and_return(true)
-    expect(YAML).to receive(:load_file).with(Rails.root.join("config", "missing_translations.yml")).and_return({
+    allow(File).to receive(:exists?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
       nl: {
         missing_scope: {
           key_scope: {
@@ -47,7 +47,7 @@ describe I18n::Workflow::ExceptionHandler do
     }.deep_stringify_keys)
 
 
-    allow(File).to receive(:open).with(Rails.root.join("config", "missing_translations.yml"), "w+").and_return(file)
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
     expect(file).to receive(:write).with("--- \nnl: \n  missing_scope: \n    foobar: \"\"\n    key_scope: \n      foobar: \"\"\n      new_translation: \"\"\n      translation: \"\"\n  translation: \"\"\n")
 
     subject.store_missing_translations
@@ -88,6 +88,7 @@ describe I18n::Workflow::ExceptionHandler do
 
   it "integrates with I18n.t nicely" do
     I18n.exception_handler = subject
+    I18n.default_locale = "nl"
     I18n.t("some_missing_translation", scope: ["foobar", "test"])
 
     expect(subject.missing_translations).to eq([
