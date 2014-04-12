@@ -7,3 +7,6 @@ en:
   foo_scope:
     bar_scope:
       no_foobar: "No foobar"
+  first_scope:
+    second_scope:
+      scoped: "Scoped"
