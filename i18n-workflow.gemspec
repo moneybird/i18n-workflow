@@ -7,10 +7,9 @@ Gem::Specification.new do |spec|
   spec.name          = "i18n-workflow"
   spec.version       = I18n::Workflow::VERSION
   spec.authors       = ["Edwin Vlieg"]
-  spec.email         = ["edwin@winno.nl"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
+  spec.email         = ["info@moneybird.com"]
+  spec.summary       = %q{I18n workflow for faster development of multilanguage apps}
+  spec.homepage      = "http://github.com/moneybird/i18n-workflow"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
