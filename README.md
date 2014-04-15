@@ -80,7 +80,7 @@ is created. This file contains all missing keys that are encountered when runnin
 The keys are collected by the custom exception handler `I18n::Workflow::ExceptionHandler`.
 
 When new keys need to be translated, the translation can be done in the `missing_translations.yml`
-file. By calling `bin/merge_missing_translations` the missing translations are merged into
+file. By calling `bundle exec merge_missing_translations` the missing translations are merged into
 the locale files. Any keys that are kept untranslated are not copied, all keys are automatically
 sorted.
 
@@ -171,7 +171,7 @@ translation for a view when needed.
 ### Check missing translations
 
 In a development environment, it is advisable to add translations for keys as soon
-as possible. The `bin/check_missing_translations` script checks the contents of
+as possible. The `bundle exec check_missing_translations` script checks the contents of
 `config/missing_translations.yml` and will print an error when the file is not empty.
 The script will return a proper exit code based on the outcome, making the script
 very usable in continuous integration.
