@@ -16,9 +16,37 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
+See Usage below for the specific initialisation codes for each part of the workflow. If
+you want to initialize the complete workflow, please add the following to the configuration
+of your application:
 
-    $ gem install i18n-workflow
+```ruby
+# config/initializers/locale.rb
+I18n.exception_handler = I18n::Workflow::ExceptionHandler.new unless Rails.env.production?
+I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+I18n.backend.class.send(:include, I18n::Backend::Cascade)
+I18n.backend.class.send(:include, I18n::Workflow::AlwaysCascade)
+I18n.backend.class.send(:include, I18n::Workflow::ExplicitScopeKey)
+```
+
+To write missing translations to config/missing_translations.yml, please add after hooks to
+your application controller and test suite:
+
+```ruby
+# After each request, write all missing translations to disk
+class ApplicationController < ActionController::Base
+  after_filter do
+    I18n.exception_handler.store_missing_translations unless Rails.env.production?
+  end
+end
+
+# After running specs, write all missing translations to disk
+RSpec.configure do |config|
+  config.after(:suite) do
+    I18n.exception_handler.store_missing_translations
+  end
+end
+```
 
 ## Usage
 
