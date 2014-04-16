@@ -27,6 +27,9 @@ I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
 I18n.backend.class.send(:include, I18n::Backend::Cascade)
 I18n.backend.class.send(:include, I18n::Workflow::AlwaysCascade)
 I18n.backend.class.send(:include, I18n::Workflow::ExplicitScopeKey)
+
+# Make sure to disable raising error in ActionView:
+config.action_view.raise_on_missing_translations = false
 ```
 
 To write missing translations to config/missing_translations.yml, please add after hooks to
