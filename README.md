@@ -10,7 +10,7 @@ and extends it to make translating easier.
 
 Add this line to your application's Gemfile:
 
-    gem 'i18n-workflow'
+    gem 'i18n-workflow', github: 'moneybird/i18n-workflow'
 
 And then execute:
 
