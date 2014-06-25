@@ -6,6 +6,8 @@ tedious when working with larger applications and managing a lot of
 translations. The workflow in this gem builds upon the basics of I18n
 and extends it to make translating easier.
 
+The workflow and I18n extensions are being used in a Rails 4.x project. Support for Rails 3.x is not available at this moment.
+
 ## Installation
 
 Add this line to your application's Gemfile:
