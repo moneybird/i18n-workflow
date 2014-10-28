@@ -28,7 +28,7 @@ module I18n::Workflow
           missing_translations << keys
         end
 
-        interpolations = options.symbolize_keys.except(*I18n::RESERVED_KEYS)
+        interpolations = options.symbolize_keys.except(*(I18n::RESERVED_KEYS + [:rescue_format]))
         keys.last.to_s.gsub('_', ' ').capitalize + " " + interpolations.values.join(" ")
       else
         super
