@@ -4,16 +4,66 @@ require 'rubygems'
 require 'yaml'
 require 'i18n/core_ext/hash'
 require 'ya2yaml'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/keys'
+
+def flatten_hash(hash, keys=[], result = {})
+  if hash.is_a? Hash
+    hash.each do |key, value|
+      flatten_hash(value, keys + [key], result)
+    end
+  else
+    result[keys] = hash
+  end
+
+  result
+end
 
 if File.exists?("config/missing_translations.yml")
   master_language = YAML.load_file("config/locales/nl.yml")
-  missing_translations = YAML.load_file("config/missing_translations.yml")
+  
+  if ARGV[0] and ARGV[0].strip == "--unused"
+    missing_translations = YAML.load_file("config/missing_translations.yml")
+    unused_translations = YAML.load_file("config/nl.unused.yml")
+    flat_missing_translations = flatten_hash(missing_translations)
+    flat_unused_translations = flatten_hash(unused_translations)
 
-  raise "Missing translations not YAML" unless missing_translations.kind_of?(Hash)
+    found_translations = {}
 
-  proc = Proc.new { |k, v| v.kind_of?(Hash) ? (v.delete_if(&proc); nil) : (v.nil? or v.empty?) }
+    flat_missing_translations.each do |scope, _|
+      while scope.length >= 2
+        if flat_unused_translations[scope]
+          found_translations[scope] = flat_unused_translations[scope]
+          break
+        else
+          key = scope.pop
+          scope.pop
+          scope << key
+        end
+      end
+    end
+
+    missing_translations = {}
+    found_translations.each do |key, value|
+      hash = value
+      key.reverse.each { |key| hash = { key => hash } }
+      missing_translations = missing_translations.deep_merge(hash)
+    end
+  else
+    missing_translations = YAML.load_file("config/missing_translations.yml")
+    raise "Missing translations not YAML" unless missing_translations.kind_of?(Hash)
+  end
+
+  proc = Proc.new { |k, v| 
+    if v.kind_of?(Hash)
+      v.delete_if(&proc)
+      v.empty?
+    else
+      v.nil? or (v.respond_to?(:empty?) and v.empty?)
+    end
+  }
+
   missing_translations.delete_if(&proc)
-
   missing_translations.deep_merge!(master_language)
 
   result_string = ""

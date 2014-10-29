@@ -1,0 +1,137 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'yaml'
+require 'i18n/core_ext/hash'
+require 'ya2yaml'
+require 'fileutils'
+require 'ruby_parser'
+require 'i18n'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/keys'
+
+$locale = "nl"
+$default_rails_scopes = ["date", "datetime", "errors", "helpers", "number", "support", "time", "activemodel", "activerecord", "javascript"]
+
+# # Mark all translations as unused
+unless File.exists?("config/#{$locale}.unused.yml")
+  puts "Moving config/locales/#{$locale}.yml to config/#{$locale}.unused.yml"
+  FileUtils.cp("config/locales/#{$locale}.yml", "config/#{$locale}.unused.yml")
+
+  # Clean locale.yml file
+  
+  puts "\n\nAdding Rails default scopes to #{$locale}.yml"
+  unused_translations = YAML.load_file("config/#{$locale}.unused.yml")[$locale]
+
+  master_language = { "nl" => {} }
+  $default_rails_scopes.each do |default_scope|
+    if unused_translations["#{default_scope}_scope"]
+      master_language["nl"]["#{default_scope}_scope"] = unused_translations["#{default_scope}_scope"]
+    end
+  end
+
+  f = File.open("config/locales/#{$locale}.yml", "w")
+  result_string = ""
+  master_language.ya2yaml.each_line { |l| result_string += (l.rstrip + "\n") }
+
+  f.write(result_string)
+  f.close
+end
+
+# Regexp over source code to find initial set of used translations in unused set
+puts "Scanning source code for used strings\n\n"
+
+i18n_regexp = /
+      (?:\s|\.|=|\()(
+        t
+        (?:\(|\s) 
+        (?:"|')
+        [A-z0-9_.]+
+        (?:"|')
+        (?:, ([^()%<>]++|\(\g<2>\))++ )?
+        (?:\)|\s)?
+      )
+    /xm
+
+$found_translations = []
+
+class I18nScope
+  def initialize(file_scope)
+    @file_scope = file_scope
+  end
+
+  def t(key, options={})
+    scope = options[:scope] || options["scope"] || @file_scope
+
+    keys = I18n.normalize_keys($locale, key, scope)
+    locale = keys.shift
+    last_key = keys.pop
+    keys = [locale] + keys.map { |s| "#{s}_scope".to_sym } + [last_key]
+
+    $found_translations << keys
+
+    keys.join(".")
+  end
+
+  def method_missing(method, *args)
+    I18nScope.new(@file_scope)
+  end
+end
+
+module I18n
+  def t(key, options)
+    key
+  end
+end
+
+
+Dir.glob("app/**/*.{rb,erb}").each do |file|
+  content = File.read(file)
+
+  content.scan(i18n_regexp).each do |match|
+    i18n_call = match[0]
+    i18n_call.gsub!(/@([A-z_]+)/, "\\1")
+
+    begin
+      file_scope = if file =~ /\Aapp\/views/
+        folders = file.split("/")
+        folders.shift
+        folders.shift
+        folders.map { |f| f.gsub(/\A_/, "").gsub(".html.erb", "") }
+      else
+        []
+      end
+
+      I18nScope.new(file_scope).instance_eval(i18n_call)
+    rescue SyntaxError, ArgumentError, NoMethodError => e
+      puts "\tCould not parse #{file}: `#{i18n_call.gsub("\n", "")}`"
+    end
+  end
+end
+
+def missing_translations_to_hash(missing_translations, locale=nil)
+  result_hash = {}
+  missing_translations.uniq.each do |key|
+    next if locale and key[0] != locale.to_sym
+    hash = ""
+    key.reverse.each { |key| hash = { key => hash } }
+    result_hash = result_hash.deep_merge(hash)
+  end
+  result_hash
+end
+
+puts "\n\nFilling config/missing_translations.yml with found strings"
+missing_translations_path = "config/missing_translations.yml"
+if File.exists?(missing_translations_path)
+  current_missing_translations = YAML.load_file(missing_translations_path)
+end
+current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
+
+file = File.open(missing_translations_path, "w+")
+file.write(missing_translations_to_hash($found_translations, $locale).deep_stringify_keys.deep_merge(current_missing_translations).ya2yaml)
+file.close
+
+puts "Now start using the application and fill config/missing_translations.yml"
+puts "Once done, merge unused + missing translations into the main locale file by calling:"
+puts "\n"
+puts "\tbin/merge_missing_translations --unused"
+puts "\n"
