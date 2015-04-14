@@ -4,11 +4,11 @@ if defined?(ActionView)
       module TranslationHelper
 
         def translate_with_rescue_format(key, options = {})
-          translate_without_rescue_format(key, options.merge(rescue_format: true))
+          translate_without_rescue_format(key, options.merge(raise: false))
         end
 
         def t(key, options = {})
-          translate_without_rescue_format(key, options.merge(rescue_format: true))
+          translate_without_rescue_format(key, options.merge(raise: false))
         end
 
         alias_method_chain :translate, :rescue_format
