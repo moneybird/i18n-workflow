@@ -1,18 +1,9 @@
-if defined?(ActionView)
-  module ActionView
-    module Helpers
-      module TranslationHelper
+# frozen_string_literal: true
 
-        def translate_with_rescue_format(key, options = {})
-          translate_without_rescue_format(key, options.merge(raise: false))
-        end
-
-        def t(key, options = {})
-          translate_without_rescue_format(key, options.merge(raise: false))
-        end
-
-        alias_method_chain :translate, :rescue_format
-      end
-    end
-  end unless ActionView::Helpers::TranslationHelper.respond_to?(:translate_with_rescue_format)
+module NeverRaiseI18nException
+  def translate(key, options = {})
+    super(key, options.merge(raise: false))
+  end
 end
+
+ActionView::Helpers::TranslationHelper.prepend(NeverRaiseI18nException) if defined?(ActionView)
