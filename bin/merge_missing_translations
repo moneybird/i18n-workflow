@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'yaml'
-require 'i18n/core_ext/hash'
+require 'i18n/utils'
 require 'ya2yaml'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
@@ -21,7 +21,7 @@ end
 
 if File.exists?("config/missing_translations.yml")
   master_language = YAML.load_file("config/locales/nl.yml")
-  
+
   if ARGV[0] and ARGV[0].strip == "--unused"
     missing_translations = YAML.load_file("config/missing_translations.yml")
     unused_translations = YAML.load_file("config/nl.unused.yml")
@@ -54,7 +54,7 @@ if File.exists?("config/missing_translations.yml")
     raise "Missing translations not YAML" unless missing_translations.kind_of?(Hash)
   end
 
-  proc = Proc.new { |k, v| 
+  proc = Proc.new { |k, v|
     if v.kind_of?(Hash)
       v.delete_if(&proc)
       v.empty?
