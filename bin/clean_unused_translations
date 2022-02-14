@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require 'rubygems'
 require 'yaml'
-require 'i18n/core_ext/hash'
+require 'i18n/utils'
 require 'ya2yaml'
 require 'fileutils'
 require 'ruby_parser'
@@ -18,7 +18,7 @@ unless File.exists?("config/#{$locale}.unused.yml")
   FileUtils.cp("config/locales/#{$locale}.yml", "config/#{$locale}.unused.yml")
 
   # Clean locale.yml file
-  
+
   puts "\n\nAdding Rails default scopes to #{$locale}.yml"
   unused_translations = YAML.load_file("config/#{$locale}.unused.yml")[$locale]
 
@@ -43,7 +43,7 @@ puts "Scanning source code for used strings\n\n"
 i18n_regexp = /
       (?:\s|\.|=|\()(
         t
-        (?:\(|\s) 
+        (?:\(|\s)
         (?:"|')
         [A-z0-9_.]+
         (?:"|')
