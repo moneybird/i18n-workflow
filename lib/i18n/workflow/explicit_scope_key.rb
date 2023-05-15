@@ -6,6 +6,7 @@ module I18n
     module ExplicitScopeKey
       def lookup(locale, key, scope = [], options = {})
         scope = I18n.normalize_keys(nil, key, scope, options[:separator] || I18n.default_separator)
+        scope = scope[1..] if scope.first.nil?
         key = scope.pop
         scope = scope.map { |s| "#{s}_scope".to_sym }
         options.merge!(cascade: true)
