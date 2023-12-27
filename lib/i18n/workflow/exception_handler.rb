@@ -83,7 +83,7 @@ module I18n
 
         locale ||= I18n.default_locale
 
-        if File.exists?(missing_translations_path)
+        if File.exist?(missing_translations_path)
           current_missing_translations = YAML.load_file(missing_translations_path)
         end
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)

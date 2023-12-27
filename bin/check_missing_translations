@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'yaml'
 
-if File.exists?("config/missing_translations.yml")
+if File.exist?("config/missing_translations.yml")
   missing_translations = YAML.load_file("config/missing_translations.yml")
 
   if !missing_translations.kind_of?(Hash) or missing_translations.length == 0

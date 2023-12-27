@@ -19,7 +19,7 @@ def flatten_hash(hash, keys=[], result = {})
   result
 end
 
-if File.exists?("config/missing_translations.yml")
+if File.exist?("config/missing_translations.yml")
   master_language = YAML.load_file("config/locales/nl.yml")
 
   if ARGV[0] and ARGV[0].strip == "--unused"

@@ -24,7 +24,7 @@ describe I18n::Workflow::ExceptionHandler do
       { nl: { missing_scope: { key_scope: { new_translation: "" } } } }
     )
 
-    allow(File).to receive(:exists?).with("config/missing_translations.yml").and_return(true)
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
     expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
       nl: {
         missing_scope: {

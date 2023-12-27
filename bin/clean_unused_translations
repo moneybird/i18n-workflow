@@ -13,7 +13,7 @@ $locale = "nl"
 $default_rails_scopes = ["date", "datetime", "errors", "helpers", "number", "support", "time", "activemodel", "activerecord", "javascript"]
 
 # # Mark all translations as unused
-unless File.exists?("config/#{$locale}.unused.yml")
+unless File.exist?("config/#{$locale}.unused.yml")
   puts "Moving config/locales/#{$locale}.yml to config/#{$locale}.unused.yml"
   FileUtils.cp("config/locales/#{$locale}.yml", "config/#{$locale}.unused.yml")
 
@@ -121,7 +121,7 @@ end
 
 puts "\n\nFilling config/missing_translations.yml with found strings"
 missing_translations_path = "config/missing_translations.yml"
-if File.exists?(missing_translations_path)
+if File.exist?(missing_translations_path)
   current_missing_translations = YAML.load_file(missing_translations_path)
 end
 current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
