@@ -65,8 +65,16 @@ if File.exist?("config/missing_translations.yml")
   missing_translations.delete_if(&proc)
   missing_translations.deep_merge!(master_language)
 
+  proc = Proc.new do |v|
+    if v.kind_of?(Hash)
+      v.sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
+    else
+      v
+    end
+  end
+
   result_string = ""
-  missing_translations.to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
+  missing_translations.transform_values(&proc).to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
 
   f = File.open("config/locales/nl.yml", "w")
   f.write(result_string)
