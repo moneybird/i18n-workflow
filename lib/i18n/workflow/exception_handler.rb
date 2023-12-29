@@ -90,14 +90,14 @@ module I18n
 
         proc = Proc.new do |v|
           if v.kind_of?(Hash)
-            v.sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
+            v.transform_keys(&:to_s).sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
           else
             v
           end
         end
 
         file = File.open(missing_translations_path, "w+")
-        file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).transform_values(&proc).to_yaml(line_width: -1))
+        file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).transform_keys(&:to_s).transform_values(&proc).to_yaml(line_width: -1))
         file.close
 
         clear_missing_translations
