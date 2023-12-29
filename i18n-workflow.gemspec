@@ -17,7 +17,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "ya2yaml"
   spec.add_dependency "i18n"
   spec.add_dependency "activesupport"
 

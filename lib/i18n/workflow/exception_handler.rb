@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'ya2yaml'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 require 'i18n'
+require 'yaml'
 
 # This class handles exceptions for I18n. It has the following purpose:
 #
@@ -67,7 +67,7 @@ module I18n
 
       # Returns a YAML string with the missing translations
       def missing_translations_to_yaml
-        missing_translations_to_hash.deep_stringify_keys.ya2yaml
+        missing_translations_to_hash.deep_stringify_keys.to_yaml
       end
 
       def filter_missing_translations(match_key)
@@ -89,7 +89,7 @@ module I18n
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
         file = File.open(missing_translations_path, "w+")
-        file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).ya2yaml)
+        file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).to_yaml(line_width: -1))
         file.close
 
         clear_missing_translations

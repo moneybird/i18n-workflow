@@ -3,7 +3,6 @@
 require 'rubygems'
 require 'yaml'
 require 'i18n/utils'
-require 'ya2yaml'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 
@@ -67,7 +66,7 @@ if File.exist?("config/missing_translations.yml")
   missing_translations.deep_merge!(master_language)
 
   result_string = ""
-  missing_translations.ya2yaml.each_line { |l| result_string += (l.rstrip + "\n") }
+  missing_translations.to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
 
   f = File.open("config/locales/nl.yml", "w")
   f.write(result_string)

@@ -2,7 +2,6 @@
 require 'rubygems'
 require 'yaml'
 require 'i18n/utils'
-require 'ya2yaml'
 require 'fileutils'
 require 'ruby_parser'
 require 'i18n'
@@ -31,7 +30,7 @@ unless File.exist?("config/#{$locale}.unused.yml")
 
   f = File.open("config/locales/#{$locale}.yml", "w")
   result_string = ""
-  master_language.ya2yaml.each_line { |l| result_string += (l.rstrip + "\n") }
+  master_language.to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
 
   f.write(result_string)
   f.close
@@ -127,7 +126,7 @@ end
 current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
 file = File.open(missing_translations_path, "w+")
-file.write(missing_translations_to_hash($found_translations, $locale).deep_stringify_keys.deep_merge(current_missing_translations).ya2yaml)
+file.write(missing_translations_to_hash($found_translations, $locale).deep_stringify_keys.deep_merge(current_missing_translations).to_yaml)
 file.close
 
 puts "Now start using the application and fill config/missing_translations.yml"
