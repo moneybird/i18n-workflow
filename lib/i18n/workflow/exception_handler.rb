@@ -77,7 +77,7 @@ module I18n
       # Stores the missing translations in config/missing_translations.yml and
       # clears the missing translations. If config/missing_translations.yml exists
       # and contains translations, the new missing translations are merged.
-      def store_missing_translations(locale=nil)
+      def store_missing_translations(locale=nil, duplicate_to_locales: [])
         return unless missing_translations?
         missing_translations_path = 'config/missing_translations.yml'
 
@@ -89,6 +89,7 @@ module I18n
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
         proc = Proc.new do |v|
+          pp v
           if v.kind_of?(Hash)
             v.transform_keys(&:to_s).sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
           else
@@ -96,8 +97,22 @@ module I18n
           end
         end
 
+        pp "jooos"
+
+        missing_translation_hash = missing_translations_to_hash(locale)
+                                    .deep_stringify_keys
+                                    .deep_merge(current_missing_translations)
+                                    .transform_keys(&:to_s)
+                                    .transform_values(&proc)
+
+        duplicate_to_locales.each do |available_locale|
+          next if missing_translation_hash.keys.include?(available_locale)
+
+          missing_translation_hash[available_locale] = missing_translation_hash[locale.to_s]
+        end
+
         file = File.open(missing_translations_path, "w+")
-        file.write(missing_translations_to_hash(locale).deep_stringify_keys.deep_merge(current_missing_translations).transform_keys(&:to_s).transform_values(&proc).to_yaml(line_width: -1))
+        file.write(missing_translation_hash.deep_stringify_keys.to_yaml(line_width: -1))
         file.close
 
         clear_missing_translations

@@ -19,71 +19,73 @@ def flatten_hash(hash, keys=[], result = {})
 end
 
 if File.exist?("config/missing_translations.yml")
-  master_language = YAML.load_file("config/locales/nl.yml")
+  missing_translation_hash = YAML.load_file("config/missing_translations.yml")
+  raise "Missing translations not YAML" unless missing_translation_hash.kind_of?(Hash)
 
-  if ARGV[0] and ARGV[0].strip == "--unused"
-    missing_translations = YAML.load_file("config/missing_translations.yml")
-    unused_translations = YAML.load_file("config/nl.unused.yml")
-    flat_missing_translations = flatten_hash(missing_translations)
-    flat_unused_translations = flatten_hash(unused_translations)
+  missing_translation_hash&.each do |locale, locale_translations|
+    master_language = YAML.load_file("config/locales/#{locale}.yml")
+    missing_translations = { "#{locale}": locale_translations }.deep_stringify_keys
 
-    found_translations = {}
+    if ARGV[0] and ARGV[0].strip == "--unused"
+      unused_translations = YAML.load_file("config/#{locale}.unused.yml")
+      flat_missing_translations = flatten_hash(missing_translations)
+      flat_unused_translations = flatten_hash(unused_translations)
 
-    flat_missing_translations.each do |scope, _|
-      while scope.length >= 2
-        if flat_unused_translations[scope]
-          found_translations[scope] = flat_unused_translations[scope]
-          break
-        else
-          key = scope.pop
-          scope.pop
-          scope << key
+      found_translations = {}
+
+      flat_missing_translations.each do |scope, _|
+        while scope.length >= 2
+          if flat_unused_translations[scope]
+            found_translations[scope] = flat_unused_translations[scope]
+            break
+          else
+            key = scope.pop
+            scope.pop
+            scope << key
+          end
         end
+      end
+
+      missing_translations = {}
+      found_translations.each do |key, value|
+        hash = value
+        key.reverse.each { |key| hash = { key => hash } }
+        missing_translations = missing_translations.deep_merge(hash)
       end
     end
 
-    missing_translations = {}
-    found_translations.each do |key, value|
-      hash = value
-      key.reverse.each { |key| hash = { key => hash } }
-      missing_translations = missing_translations.deep_merge(hash)
+    proc = Proc.new { |k, v|
+      if v.kind_of?(Hash)
+        v.delete_if(&proc)
+        v.empty?
+      else
+        v.nil? or (v.respond_to?(:empty?) and v.empty?)
+      end
+    }
+
+    missing_translations.delete_if(&proc)
+    missing_translations.deep_merge!(master_language)
+
+    proc = Proc.new do |v|
+      if v.kind_of?(Hash)
+        v.transform_keys(&:to_s).sort_by {|key, _| key }.to_h.transform_values(&proc)
+      else
+        v
+      end
     end
-  else
-    missing_translations = YAML.load_file("config/missing_translations.yml")
-    raise "Missing translations not YAML" unless missing_translations.kind_of?(Hash)
+
+    result_string = ""
+    missing_translations.transform_keys(&:to_s).transform_values(&proc).to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
+
+    f = File.open("config/locales/#{locale}.yml", "w")
+    f.write(result_string)
+    f.close
+
+    puts "Merged missing_translations.yml into #{locale}.yml"
   end
-
-  proc = Proc.new { |k, v|
-    if v.kind_of?(Hash)
-      v.delete_if(&proc)
-      v.empty?
-    else
-      v.nil? or (v.respond_to?(:empty?) and v.empty?)
-    end
-  }
-
-  missing_translations.delete_if(&proc)
-  missing_translations.deep_merge!(master_language)
-
-  proc = Proc.new do |v|
-    if v.kind_of?(Hash)
-      v.transform_keys(&:to_s).sort_by {|key, _| key }.to_h.transform_values(&proc)
-    else
-      v
-    end
-  end
-
-  result_string = ""
-  missing_translations.transform_keys(&:to_s).transform_values(&proc).to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
-
-  f = File.open("config/locales/nl.yml", "w")
-  f.write(result_string)
-  f.close
 
   f = File.open("config/missing_translations.yml", "w")
   f.close
-
-  puts "Merged missing_translations.yml into nl.yml"
 else
   puts "No missing translations"
 end

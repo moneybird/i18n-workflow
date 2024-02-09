@@ -40,7 +40,7 @@ describe I18n::Workflow::ExceptionHandler do
 
 
     allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
-    expect(file).to receive(:write).with("--- \nnl: \n  missing_scope: \n    foobar: \"\"\n    key_scope: \n      foobar: \"\"\n      new_translation: \"\"\n      translation: \"\"\n  translation: \"\"\n")
+    expect(file).to receive(:write).with("---\nnl:\n  missing_scope:\n    foobar: \'\'\n    key_scope:\n      foobar: \'\'\n      new_translation: \'\'\n      translation: \'\'\n  translation: \'\'\n")
 
     subject.store_missing_translations
   end
@@ -75,7 +75,7 @@ describe I18n::Workflow::ExceptionHandler do
       [:nl, :missing_scope, :foobar],
       [:nl, :translation]
     ])
-    expect(subject.missing_translations_to_yaml).to eq("--- \nnl: \n  missing_scope: \n    foobar: \"\"\n    key_scope: \n      foobar: \"\"\n      translation: \"\"\n  translation: \"\"\n")
+    expect(subject.missing_translations_to_yaml).to eq("---\nnl:\n  missing_scope:\n    foobar: \'\'\n    key_scope:\n      foobar: \'\'\n      translation: \'\'\n  translation: \'\'\n")
   end
 
   it "integrates with I18n.t nicely" do
@@ -90,4 +90,30 @@ describe I18n::Workflow::ExceptionHandler do
     subject.clear_missing_translations
   end
 
+  it "duplicates the missing translations to multiple locales" do
+    allow(subject).to receive(:missing_translations?).and_return(true)
+    allow(subject).to receive(:missing_translations_to_hash).and_return(
+      { nl: { missing_scope: { key_scope: { new_translation: "" } } } }
+    )
+
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
+      nl: {
+        missing_scope: {
+          key_scope: {
+            translation: "",
+            foobar: ""
+          },
+          foobar: ""
+        },
+        translation: ""
+      }
+    }.deep_stringify_keys)
+
+
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
+    expect(file).to receive(:write).with("---\nnl:\n  missing_scope:\n    foobar: \'\'\n    key_scope:\n      foobar: \'\'\n      new_translation: \'\'\n      translation: \'\'\n  translation: \'\'\nen:\n  missing_scope:\n    foobar: \'\'\n    key_scope:\n      foobar: \'\'\n      new_translation: \'\'\n      translation: \'\'\n  translation: \'\'\n")
+
+    subject.store_missing_translations(duplicate_to_locales: [:en])
+  end
 end
