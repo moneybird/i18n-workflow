@@ -89,15 +89,12 @@ module I18n
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
         proc = Proc.new do |v|
-          pp v
           if v.kind_of?(Hash)
             v.transform_keys(&:to_s).sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
           else
             v
           end
         end
-
-        pp "jooos"
 
         missing_translation_hash = missing_translations_to_hash(locale)
                                     .deep_stringify_keys

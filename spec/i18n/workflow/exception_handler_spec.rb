@@ -75,7 +75,7 @@ describe I18n::Workflow::ExceptionHandler do
       [:nl, :missing_scope, :foobar],
       [:nl, :translation]
     ])
-    expect(subject.missing_translations_to_yaml).to eq("---\nnl:\n  missing_scope:\n    foobar: \'\'\n    key_scope:\n      foobar: \'\'\n      translation: \'\'\n  translation: \'\'\n")
+    expect(subject.missing_translations_to_yaml).to eq("---\nnl:\n  missing_scope:\n    key_scope:\n      translation: \'\'\n      foobar: \'\'\n    foobar: \'\'\n  translation: \'\'\n")
   end
 
   it "integrates with I18n.t nicely" do
