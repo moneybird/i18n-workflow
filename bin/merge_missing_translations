@@ -6,6 +6,10 @@ require 'i18n/utils'
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 
+# Set defaults options
+input_file = ARGV[0] && ARGV[0].strip == "--input-file" ? ARGV[1] : "config/missing_translations.yml"
+locales_dir = ARGV[0] && ARGV[2].strip == "--locales-dir" ? ARGV[3] : "config/locales"
+
 def flatten_hash(hash, keys=[], result = {})
   if hash.is_a? Hash
     hash.each do |key, value|
@@ -18,12 +22,12 @@ def flatten_hash(hash, keys=[], result = {})
   result
 end
 
-if File.exist?("config/missing_translations.yml")
-  missing_translation_hash = YAML.load_file("config/missing_translations.yml")
+if File.exist?(input_file)
+  missing_translation_hash = YAML.load_file(input_file)
   raise "Missing translations not YAML" unless missing_translation_hash.kind_of?(Hash)
 
   missing_translation_hash&.each do |locale, locale_translations|
-    master_language = YAML.load_file("config/locales/#{locale}.yml")
+    master_language = YAML.load_file("#{locales_dir}/#{locale}.yml")
     missing_translations = { "#{locale}": locale_translations }.deep_stringify_keys
 
     if ARGV[0] and ARGV[0].strip == "--unused"
@@ -77,14 +81,14 @@ if File.exist?("config/missing_translations.yml")
     result_string = ""
     missing_translations.transform_keys(&:to_s).transform_values(&proc).to_yaml(line_width: -1).each_line { |l| result_string += (l.rstrip + "\n") }
 
-    f = File.open("config/locales/#{locale}.yml", "w")
+    f = File.open("#{locales_dir}/#{locale}.yml", "w")
     f.write(result_string)
     f.close
 
     puts "Merged missing_translations.yml into #{locale}.yml"
   end
 
-  f = File.open("config/missing_translations.yml", "w")
+  f = File.open(input_file, "w")
   f.close
 else
   puts "No missing translations"
