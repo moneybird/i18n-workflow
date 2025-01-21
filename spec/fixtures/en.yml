@@ -1,6 +1,7 @@
 ---
 en:
   documents: Documents
+  other: "Other"
   documents.index.no_documents_found: "No documents found"
   foobar: "Foobar"
   no_foobar: "No rabfoo"
@@ -10,3 +11,5 @@ en:
   first_scope:
     second_scope:
       scoped: "Scoped"
+  chamber_of_commerce_scope:
+    en: "Chamber of Commerce"

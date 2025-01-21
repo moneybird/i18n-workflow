@@ -9,7 +9,7 @@ module I18n
         scope = scope[1..] if scope.first.nil?
         key = scope.pop
         scope = scope.map { |s| "#{s}_scope".to_sym }
-        options.merge!(cascade: true)
+        options.merge!(cascade: options.fetch(:cascade, true))
         super(locale, key, scope, options)
       end
     end
