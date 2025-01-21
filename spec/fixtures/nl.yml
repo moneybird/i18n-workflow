@@ -1,9 +1,6 @@
 ---
 nl:
   documents: Documenten
-  other: "Overige"
   documents_scope:
     index_scope:
       no_documents_found: "Geen documenten gevonden"
-  chamber_of_commerce_scope:
-    nl: "Kamer van Koophandel"
