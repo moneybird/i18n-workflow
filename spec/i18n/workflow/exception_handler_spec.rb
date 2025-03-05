@@ -116,4 +116,22 @@ describe I18n::Workflow::ExceptionHandler do
 
     subject.store_missing_translations(duplicate_to_locales: [:en])
   end
+
+  it 'does not overwrite existing translations in multiple locales' do 
+    allow(subject).to receive(:missing_translations?).and_return(true)
+    allow(subject).to receive(:missing_translations_to_hash).and_return(
+      { nl: { translation_key_two: "" } }
+    )
+
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
+      nl: { translation_key_one: "A Dutch translation" },
+      en: { translation_key_one: "An English translation" }
+    }.deep_stringify_keys)
+
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
+    expect(file).to receive(:write).with("---\nnl:\n  translation_key_one: A Dutch translation\n  translation_key_two: \'\'\nen:\n  translation_key_one: An English translation\n  translation_key_two: \'\'\n")
+
+    subject.store_missing_translations(duplicate_to_locales: [:en])
+  end
 end
