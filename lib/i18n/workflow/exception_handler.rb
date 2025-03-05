@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/deep_dup'
 require 'active_support/core_ext/hash/keys'
 require 'i18n'
 require 'yaml'
@@ -103,9 +104,18 @@ module I18n
                                     .transform_values(&proc)
 
         duplicate_to_locales.each do |available_locale|
-          next if missing_translation_hash.keys.include?(available_locale)
-
-          missing_translation_hash[available_locale] = missing_translation_hash[locale.to_s]
+          available_locale = available_locale.to_s
+          source_translations = missing_translation_hash[locale.to_s].deep_dup
+          
+          if missing_translation_hash.key?(available_locale)
+            # Merge only missing keys from source locale
+            source_translations.each do |key, value|
+              missing_translation_hash[available_locale][key] ||= ""
+            end
+          else
+            # Create new locale with all translations
+            missing_translation_hash[available_locale] = source_translations.transform_values { "" }
+          end
         end
 
         file = File.open(missing_translations_path, "w+")
