@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/hash/deep_merge'
-require 'active_support/core_ext/hash/deep_dup'
-require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/hash'
 require 'i18n'
 require 'yaml'
 
@@ -106,15 +105,15 @@ module I18n
         duplicate_to_locales.each do |available_locale|
           available_locale = available_locale.to_s
           source_translations = missing_translation_hash[locale.to_s].deep_dup
-          
+
           if missing_translation_hash.key?(available_locale)
             # Merge only missing keys from source locale
             source_translations.each do |key, value|
               missing_translation_hash[available_locale][key] ||= ""
             end
           else
-            # Create new locale with all translations
-            missing_translation_hash[available_locale] = source_translations.transform_values { "" }
+            # Create new locale with all translations but without original locale values
+            missing_translation_hash[available_locale] = source_translations.deep_transform_values { "" }
           end
         end
 
