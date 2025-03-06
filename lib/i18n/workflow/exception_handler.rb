@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/hash/deep_merge'
-require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/hash'
 require 'i18n'
 require 'yaml'
 
@@ -88,6 +88,36 @@ module I18n
         end
         current_missing_translations = {} unless current_missing_translations.is_a?(Hash)
 
+        missing_translation_hash = missing_translations_to_hash(locale)
+                                    .deep_stringify_keys
+                                    .deep_merge(current_missing_translations)
+                                    .transform_keys(&:to_s)
+
+        duplicate_to_locales.each do |available_locale|
+          available_locale = available_locale.to_s
+          source_translations = missing_translation_hash[locale.to_s].deep_dup
+
+          if missing_translation_hash.key?(available_locale)
+            # Deep merge only missing keys from source locale
+            missing_translation_hash[available_locale].deep_merge!(source_translations) { |_, old_val, new_val|
+              old_val.is_a?(Hash) ? old_val : old_val.presence || ""
+            }
+          else
+            # Create new locale with all translations but without original locale values
+            missing_translation_hash[available_locale] = source_translations.deep_transform_values { "" }
+          end
+        end
+
+        missing_translation_hash = missing_translation_hash.transform_values(&proc)
+
+        file = File.open(missing_translations_path, "w+")
+        file.write(missing_translation_hash.deep_stringify_keys.to_yaml(line_width: -1))
+        file.close
+
+        clear_missing_translations
+      end
+
+      def proc 
         proc = Proc.new do |v|
           if v.kind_of?(Hash)
             v.transform_keys(&:to_s).sort_by {|key, _| key.to_s }.to_h.transform_values(&proc)
@@ -95,24 +125,6 @@ module I18n
             v
           end
         end
-
-        missing_translation_hash = missing_translations_to_hash(locale)
-                                    .deep_stringify_keys
-                                    .deep_merge(current_missing_translations)
-                                    .transform_keys(&:to_s)
-                                    .transform_values(&proc)
-
-        duplicate_to_locales.each do |available_locale|
-          next if missing_translation_hash.keys.include?(available_locale)
-
-          missing_translation_hash[available_locale] = missing_translation_hash[locale.to_s]
-        end
-
-        file = File.open(missing_translations_path, "w+")
-        file.write(missing_translation_hash.deep_stringify_keys.to_yaml(line_width: -1))
-        file.close
-
-        clear_missing_translations
       end
     end
   end

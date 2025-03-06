@@ -116,4 +116,58 @@ describe I18n::Workflow::ExceptionHandler do
 
     subject.store_missing_translations(duplicate_to_locales: [:en])
   end
+
+  it 'does not overwrite existing translations in multiple locales' do 
+    allow(subject).to receive(:missing_translations?).and_return(true)
+    allow(subject).to receive(:missing_translations_to_hash).and_return(
+      { nl: { translation_key_two: "" } }
+    )
+
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
+      nl: { translation_key_one: "A Dutch translation" },
+      en: { translation_key_one: "An English translation" }
+    }.deep_stringify_keys)
+
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
+    expect(file).to receive(:write).with("---\nnl:\n  translation_key_one: A Dutch translation\n  translation_key_two: \'\'\nen:\n  translation_key_one: An English translation\n  translation_key_two: \'\'\n")
+
+    subject.store_missing_translations(duplicate_to_locales: [:en])
+  end
+
+  it 'works nicely with nested existing translations in multiple locales' do 
+    allow(subject).to receive(:missing_translations?).and_return(true)
+    allow(subject).to receive(:missing_translations_to_hash).and_return(
+      { nl: { translation_scope: { translation_key_two: "" } } }
+    )
+
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
+      nl: { translation_key_one: "A Dutch translation" },
+      en: { translation_key_one: "An English translation" }
+    }.deep_stringify_keys)
+
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
+    expect(file).to receive(:write).with("---\nnl:\n  translation_key_one: A Dutch translation\n  translation_scope:\n    translation_key_two: \'\'\nen:\n  translation_key_one: An English translation\n  translation_scope:\n    translation_key_two: \'\'\n")
+
+    subject.store_missing_translations(duplicate_to_locales: [:en])
+  end
+
+  it 'works with deeply nested existing translations in multiple locales' do \
+    allow(subject).to receive(:missing_translations?).and_return(true)
+    allow(subject).to receive(:missing_translations_to_hash).and_return(
+      { nl: { translation_scope_two: { foo: "" , translation_scope_three: { bar: "" }} } }
+    )
+
+    allow(File).to receive(:exist?).with("config/missing_translations.yml").and_return(true)
+    expect(YAML).to receive(:load_file).with("config/missing_translations.yml").and_return({
+      nl: { translation_key_one: "A Dutch translation", translation_scope_two: { translation_key_two: "Dutch translation 2", translation_scope_three: { translation_key_three: "Dutch translation 3" } } },
+      en: { translation_key_one: "An English translation", translation_scope_two: { translation_key_two: "English translation 2", translation_scope_three: { translation_key_three: "English translation 3" } } }
+    }.deep_stringify_keys)
+
+    allow(File).to receive(:open).with("config/missing_translations.yml", "w+").and_return(file)
+    expect(file).to receive(:write).with("---\nnl:\n  translation_key_one: A Dutch translation\n  translation_scope_two:\n    foo: \'\'\n    translation_key_two: Dutch translation 2\n    translation_scope_three:\n      bar: \'\'\n      translation_key_three: Dutch translation 3\nen:\n  translation_key_one: An English translation\n  translation_scope_two:\n    foo: \'\'\n    translation_key_two: English translation 2\n    translation_scope_three:\n      bar: \'\'\n      translation_key_three: English translation 3\n")
+
+    subject.store_missing_translations(duplicate_to_locales: [:en])
+  end
 end
